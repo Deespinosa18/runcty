@@ -1,0 +1,33 @@
+import { Routes } from '@angular/router';
+
+/** Cada entidad tiene: lista, nuevo, detalle (:id) y editar (:id/editar). */
+export const routes: Routes = [
+  { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+  { path: 'inicio', loadComponent: () => import('./paginas/inicio.page').then((m) => m.InicioPage) },
+  { path: 'recomendar', loadComponent: () => import('./paginas/recomendar.page').then((m) => m.RecomendarPage) },
+  { path: 'corredores', loadComponent: () => import('./paginas/corredores/corredores-lista.page').then((m) => m.CorredoresListaPage) },
+  { path: 'corredores/nuevo', loadComponent: () => import('./paginas/corredores/corredores-form.page').then((m) => m.CorredoresFormPage) },
+  { path: 'corredores/:id', loadComponent: () => import('./paginas/corredores/corredores-detalle.page').then((m) => m.CorredoresDetallePage) },
+  { path: 'corredores/:id/editar', loadComponent: () => import('./paginas/corredores/corredores-form.page').then((m) => m.CorredoresFormPage) },
+  { path: 'consentimientos', loadComponent: () => import('./paginas/consentimientos/consentimientos-lista.page').then((m) => m.ConsentimientosListaPage) },
+  { path: 'consentimientos/nuevo', loadComponent: () => import('./paginas/consentimientos/consentimientos-form.page').then((m) => m.ConsentimientosFormPage) },
+  { path: 'consentimientos/:id', loadComponent: () => import('./paginas/consentimientos/consentimientos-detalle.page').then((m) => m.ConsentimientosDetallePage) },
+  { path: 'consentimientos/:id/editar', loadComponent: () => import('./paginas/consentimientos/consentimientos-form.page').then((m) => m.ConsentimientosFormPage) },
+  { path: 'zonas', loadComponent: () => import('./paginas/zonas/zonas-lista.page').then((m) => m.ZonasListaPage) },
+  { path: 'zonas/nuevo', loadComponent: () => import('./paginas/zonas/zonas-form.page').then((m) => m.ZonasFormPage) },
+  { path: 'zonas/:id', loadComponent: () => import('./paginas/zonas/zonas-detalle.page').then((m) => m.ZonasDetallePage) },
+  { path: 'zonas/:id/editar', loadComponent: () => import('./paginas/zonas/zonas-form.page').then((m) => m.ZonasFormPage) },
+  { path: 'rutas', loadComponent: () => import('./paginas/rutas/rutas-lista.page').then((m) => m.RutasListaPage) },
+  { path: 'rutas/nuevo', loadComponent: () => import('./paginas/rutas/rutas-form.page').then((m) => m.RutasFormPage) },
+  { path: 'rutas/:id', loadComponent: () => import('./paginas/rutas/rutas-detalle.page').then((m) => m.RutasDetallePage) },
+  { path: 'rutas/:id/editar', loadComponent: () => import('./paginas/rutas/rutas-form.page').then((m) => m.RutasFormPage) },
+  { path: 'evaluaciones', loadComponent: () => import('./paginas/evaluaciones/evaluaciones-lista.page').then((m) => m.EvaluacionesListaPage) },
+  { path: 'evaluaciones/nuevo', loadComponent: () => import('./paginas/evaluaciones/evaluaciones-form.page').then((m) => m.EvaluacionesFormPage) },
+  { path: 'evaluaciones/:id', loadComponent: () => import('./paginas/evaluaciones/evaluaciones-detalle.page').then((m) => m.EvaluacionesDetallePage) },
+  { path: 'evaluaciones/:id/editar', loadComponent: () => import('./paginas/evaluaciones/evaluaciones-form.page').then((m) => m.EvaluacionesFormPage) },
+  { path: 'incidentes', loadComponent: () => import('./paginas/incidentes/incidentes-lista.page').then((m) => m.IncidentesListaPage) },
+  { path: 'incidentes/nuevo', loadComponent: () => import('./paginas/incidentes/incidentes-form.page').then((m) => m.IncidentesFormPage) },
+  { path: 'incidentes/:id', loadComponent: () => import('./paginas/incidentes/incidentes-detalle.page').then((m) => m.IncidentesDetallePage) },
+  { path: 'incidentes/:id/editar', loadComponent: () => import('./paginas/incidentes/incidentes-form.page').then((m) => m.IncidentesFormPage) },
+  { path: '**', redirectTo: 'inicio' },
+];
