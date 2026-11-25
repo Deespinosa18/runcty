@@ -14,6 +14,10 @@ export function urlApi(): string {
     // El emulador llega a la PC con 10.0.2.2; un teléfono real, con la IP de la PC.
     return `http://${IP_TELEFONO_REAL || '10.0.2.2'}:${PUERTO}/api`;
   }
-  // Navegador de la PC (ionic serve).
+  // Navegador con "ng serve": el proxy de desarrollo (proxy.conf.json) reenvía /api a Django.
+  if (location.port === '8100' || location.port === '4200') {
+    return '/api';
+  }
+  // Navegador de la PC sirviendo el build de otra forma.
   return `http://127.0.0.1:${PUERTO}/api`;
 }
