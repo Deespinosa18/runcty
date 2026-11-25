@@ -6,8 +6,8 @@ import {
 } from '@ionic/angular';
 
 import { mensajeError } from '../../core/crud-api';
-import { Ruta, Zona, DIFICULTADES, SUPERFICIES } from '../../core/modelos';
-import { RutasApi, ZonasApi } from '../../core/runcty-api.service';
+import { Club, Ruta, Zona, DIFICULTADES, SUPERFICIES } from '../../core/modelos';
+import { ClubesApi, RutasApi, ZonasApi } from '../../core/runcty-api.service';
 
 /** Formulario para crear (/rutas/nuevo) o editar (/rutas/:id/editar) un(a) ruta. */
 @Component({
@@ -26,6 +26,10 @@ import { RutasApi, ZonasApi } from '../../core/runcty-api.service';
         <ion-list>
           <ion-item><ion-select label="Zona" labelPlacement="stacked" interface="popover" formControlName="zona" placeholder="Selecciona">
             @for (o of opcionesZona(); track o.id) { <ion-select-option [value]="o.id">{{ o.nombre }}</ion-select-option> }
+          </ion-select></ion-item>
+          <ion-item><ion-select label="Club que la sugiere (opcional)" labelPlacement="stacked" interface="popover" formControlName="club" placeholder="Selecciona">
+            <ion-select-option [value]="null">Ninguno</ion-select-option>
+            @for (o of opcionesClub(); track o.id) { <ion-select-option [value]="o.id">{{ o.nombre }}</ion-select-option> }
           </ion-select></ion-item>
           <ion-item><ion-input label="Nombre" labelPlacement="stacked" type="text" formControlName="nombre"></ion-input></ion-item>
           <ion-item><ion-input label="Distancia (km)" labelPlacement="stacked" type="number" formControlName="km"></ion-input></ion-item>
@@ -65,11 +69,13 @@ export class RutasFormPage implements OnInit {
   protected readonly guardando = signal(false);
   protected readonly error = signal('');
   protected readonly opcionesZona = signal<Zona[]>([]);
+  protected readonly opcionesClub = signal<Club[]>([]);
   protected readonly dificultades = Object.entries(DIFICULTADES);
   protected readonly superficies = Object.entries(SUPERFICIES);
 
   protected readonly form = new FormGroup({
     zona: new FormControl<number | null>(null, { validators: [Validators.required] }),
+    club: new FormControl<number | null>(null, { validators: [] }),
     nombre: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
     km: new FormControl<number | null>(null, { validators: [Validators.required, Validators.min(0.1)] }),
     desnivel: new FormControl<number | null>(0, { validators: [Validators.min(0)] }),
@@ -83,6 +89,7 @@ export class RutasFormPage implements OnInit {
 
   constructor() {
     inject(ZonasApi).listar().subscribe((l) => this.opcionesZona.set(l));
+    inject(ClubesApi).listar().subscribe((l) => this.opcionesClub.set(l));
   }
 
   ngOnInit(): void {

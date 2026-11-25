@@ -33,6 +33,8 @@ import { RutasApi } from '../../core/runcty-api.service';
       @if (item(); as x) {
         <ion-list>
           <ion-item><ion-label><p>Zona</p><h2>{{ x.zona_nombre }}</h2></ion-label></ion-item>
+          <ion-item><ion-label><p>Sugerida por</p><h2>{{ x.club_nombre || '—' }}</h2></ion-label></ion-item>
+          <ion-item><ion-label><p>Calificación promedio</p><h2>{{ x.calificacion_promedio !== null ? x.calificacion_promedio + ' / 5 (' + x.total_calificaciones + ')' : 'Sin calificaciones' }}</h2></ion-label></ion-item>
           <ion-item><ion-label><p>Distancia</p><h2>{{ x.km + ' km' }}</h2></ion-label></ion-item>
           <ion-item><ion-label><p>Desnivel</p><h2>{{ x.desnivel + ' m' }}</h2></ion-label></ion-item>
           <ion-item><ion-label><p>Superficie</p><h2>{{ superficies[x.superficie] }}</h2></ion-label></ion-item>

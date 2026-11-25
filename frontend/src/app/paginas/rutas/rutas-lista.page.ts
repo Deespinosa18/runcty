@@ -45,7 +45,7 @@ import { RutasApi } from '../../core/runcty-api.service';
           <ion-item [routerLink]="['/rutas', x.id]" detail>
             <ion-label>
               <h2>{{ x.nombre }}</h2>
-              <p>{{ x.zona_nombre }} · {{ x.km }} km · dificultad {{ dificultades[x.dificultad] }}</p>
+              <p>{{ x.zona_nombre }} · {{ x.km }} km · dificultad {{ dificultades[x.dificultad] }}{{ x.club_nombre ? ' · sugerida por ' + x.club_nombre : '' }}</p>
             </ion-label>
             <ion-button slot="end" fill="clear" color="danger" aria-label="Eliminar"
               (click)="$event.stopPropagation(); $event.preventDefault(); eliminar(x)">

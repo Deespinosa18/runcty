@@ -39,3 +39,12 @@ def calcular_indice(ruta, hora_salida, recientes=None):
         recientes = incidentes_recientes(ruta.zona_id)
     total = sum(valor for _, valor in aportes(ruta, hora_salida, recientes))
     return min(100, max(0, floor(total + 0.5)))
+
+
+def alerta_zona(zona_id, dias=7, minimo=3):
+    """RF-09: alerta si la zona tiene `minimo` o más incidentes CONFIRMADOS en los últimos `dias` días."""
+    desde = timezone.now() - timedelta(days=dias)
+    confirmados = Incidente.objects.filter(
+        zona_id=zona_id, fecha__gte=desde, estado=Incidente.Estado.CONFIRMADO
+    ).count()
+    return {'alerta': confirmados >= minimo, 'confirmados': confirmados, 'dias': dias, 'minimo': minimo}

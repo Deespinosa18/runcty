@@ -1,12 +1,19 @@
 from django.contrib import admin
 
-from .models import Consentimiento, Corredor, Evaluacion, Incidente, Ruta, Zona
+from .models import (
+    Calificacion, Club, Consentimiento, ContactoConfianza, Corredor, Evaluacion, Incidente, Ruta, Zona,
+)
 
 
 class ConsentimientoInline(admin.TabularInline):
     model = Consentimiento
     extra = 0
     readonly_fields = ('fecha',)
+
+
+class ContactoInline(admin.TabularInline):
+    model = ContactoConfianza
+    extra = 0
 
 
 class RutaInline(admin.TabularInline):
@@ -20,7 +27,7 @@ class CorredorAdmin(admin.ModelAdmin):
     list_display = ('alias', 'correo', 'activo', 'creado')
     list_filter = ('activo',)
     search_fields = ('alias', 'correo')
-    inlines = [ConsentimientoInline]
+    inlines = [ConsentimientoInline, ContactoInline]
 
 
 @admin.register(Consentimiento)
@@ -38,8 +45,8 @@ class ZonaAdmin(admin.ModelAdmin):
 
 @admin.register(Ruta)
 class RutaAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'zona', 'km', 'dificultad', 'iluminacion', 'afluencia', 'apoyo')
-    list_filter = ('zona', 'dificultad', 'superficie')
+    list_display = ('nombre', 'zona', 'club', 'km', 'dificultad', 'iluminacion', 'afluencia', 'apoyo')
+    list_filter = ('zona', 'club', 'dificultad', 'superficie')
     search_fields = ('nombre',)
 
 
@@ -55,3 +62,21 @@ class IncidenteAdmin(admin.ModelAdmin):
     list_display = ('tipo', 'zona', 'ubicacion', 'autor', 'fecha', 'estado')
     list_filter = ('estado', 'tipo', 'zona')
     search_fields = ('ubicacion',)
+
+
+@admin.register(ContactoConfianza)
+class ContactoConfianzaAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'corredor', 'telefono', 'correo', 'minutos_detencion', 'activo')
+    list_filter = ('activo',)
+
+
+@admin.register(Club)
+class ClubAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'ciudad')
+    search_fields = ('nombre',)
+
+
+@admin.register(Calificacion)
+class CalificacionAdmin(admin.ModelAdmin):
+    list_display = ('ruta', 'corredor', 'puntaje', 'fecha')
+    list_filter = ('puntaje', 'ruta')

@@ -4,8 +4,8 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .indice import calcular_indice
-from .models import Consentimiento, Corredor, Evaluacion, Incidente, Ruta, Zona
+from .indice import alerta_zona, calcular_indice
+from .models import Club, Consentimiento, Corredor, Evaluacion, Incidente, Ruta, Zona
 
 
 class CrudApiTests(APITestCase):
@@ -105,3 +105,52 @@ class IndiceTests(APITestCase):
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
         self.assertNotEqual(r.data['indice'], 100)  # el cliente no puede fijar el índice
         self.assertTrue(Consentimiento.objects.filter(corredor=autor).exists())
+
+
+class NuevosRequisitosTests(APITestCase):
+    """RF-04/05 contactos, RF-07 clubes, RF-08 calificaciones, RF-09 alerta de zona."""
+
+    def test_contacto_requiere_telefono_o_correo(self):
+        corredor = Corredor.objects.get(alias='Corredor demo A')
+        r = self.client.post('/api/contactos/', {'corredor': corredor.id, 'nombre': 'Mamá'}, format='json')
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        r = self.client.post('/api/contactos/', {'corredor': corredor.id, 'nombre': 'Mamá',
+                                                 'telefono': '0991234567'}, format='json')
+        self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(r.data['minutos_detencion'], 10)
+        url = f"/api/contactos/{r.data['id']}/"
+        self.assertEqual(self.client.patch(url, {'minutos_detencion': 61}, format='json').status_code,
+                         status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(self.client.delete(url).status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_club_sugiere_ruta(self):
+        r = self.client.get('/api/rutas/', {'club': Club.objects.get(nombre='Club Gacelas').id})
+        self.assertEqual([x['nombre'] for x in r.data['results']], ['Circuito del parque'])
+        self.assertEqual(r.data['results'][0]['club_nombre'], 'Club Gacelas')
+
+    def test_calificacion_1_a_5_y_promedio(self):
+        ruta = Ruta.objects.get(nombre='Vuelta junto al río')
+        a, b = Corredor.objects.all()[:2]
+        self.assertEqual(self.client.post('/api/calificaciones/', {'corredor': a.id, 'ruta': ruta.id, 'puntaje': 6},
+                                          format='json').status_code, status.HTTP_400_BAD_REQUEST)
+        self.client.post('/api/calificaciones/', {'corredor': a.id, 'ruta': ruta.id, 'puntaje': 5}, format='json')
+        self.client.post('/api/calificaciones/', {'corredor': b.id, 'ruta': ruta.id, 'puntaje': 4}, format='json')
+        repetida = self.client.post('/api/calificaciones/', {'corredor': a.id, 'ruta': ruta.id, 'puntaje': 3},
+                                    format='json')
+        self.assertEqual(repetida.status_code, status.HTTP_400_BAD_REQUEST)
+        detalle = self.client.get(f'/api/rutas/{ruta.id}/').data
+        self.assertEqual(detalle['calificacion_promedio'], 4.5)
+        self.assertEqual(detalle['total_calificaciones'], 2)
+
+    def test_alerta_de_zona_con_3_confirmados(self):
+        zona = Zona.objects.get(nombre='Jipiro')
+        autor = Corredor.objects.get(alias='Corredor demo A')
+        for i in range(3):
+            Incidente.objects.create(autor=autor, zona=zona, tipo='VIA', ubicacion=f'Punto {i}',
+                                     fecha=timezone.now(), estado='CONFIRMADO')
+        Incidente.objects.create(autor=autor, zona=zona, tipo='VIA', ubicacion='Viejo',
+                                 fecha=timezone.now() - timedelta(days=10), estado='CONFIRMADO')
+        r = self.client.get(f'/api/zonas/{zona.id}/alerta/')
+        self.assertTrue(r.data['alerta'])
+        self.assertEqual(r.data['confirmados'], 3)
+        self.assertFalse(alerta_zona(Zona.objects.get(nombre='La Tebaida').id)['alerta'])

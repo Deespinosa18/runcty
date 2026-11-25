@@ -18,6 +18,44 @@ export interface Consentimiento {
   fecha: string;
 }
 
+export interface ContactoConfianza {
+  id: number;
+  corredor: number;
+  corredor_alias: string;
+  nombre: string;
+  telefono: string;
+  correo: string;
+  minutos_detencion: number;
+  activo: boolean;
+}
+
+export interface Club {
+  id: number;
+  nombre: string;
+  ciudad: string;
+  descripcion: string;
+  total_rutas: number;
+}
+
+export interface Calificacion {
+  id: number;
+  corredor: number;
+  corredor_alias: string;
+  ruta: number;
+  ruta_nombre: string;
+  puntaje: number;
+  comentario: string;
+  fecha: string;
+}
+
+/** RF-09: alerta de zona (3 o más incidentes confirmados en 7 días). */
+export interface AlertaZona {
+  alerta: boolean;
+  confirmados: number;
+  dias: number;
+  minimo: number;
+}
+
 export interface Zona {
   id: number;
   nombre: string;
@@ -32,6 +70,8 @@ export interface Ruta {
   id: number;
   zona: number;
   zona_nombre: string;
+  club: number | null;
+  club_nombre: string | null;
   nombre: string;
   km: number;
   desnivel: number;
@@ -41,6 +81,8 @@ export interface Ruta {
   afluencia: number;
   apoyo: number;
   incidentes_base: number;
+  calificacion_promedio: number | null;
+  total_calificaciones: number;
 }
 
 export interface Evaluacion {

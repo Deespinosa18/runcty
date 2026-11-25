@@ -44,6 +44,44 @@ class Consentimiento(models.Model):
         return f'{self.corredor} · v{self.version}'
 
 
+class ContactoConfianza(models.Model):
+    """Persona elegida por el corredor para ver su ubicación y recibir avisos (RF-04, RF-05)."""
+
+    corredor = models.ForeignKey(Corredor, on_delete=models.CASCADE, related_name='contactos')
+    nombre = models.CharField(max_length=80)
+    telefono = models.CharField(max_length=20, blank=True)
+    correo = models.EmailField(blank=True)
+    minutos_detencion = models.PositiveSmallIntegerField(
+        default=10, validators=[MinValueValidator(1), MaxValueValidator(60)],
+        help_text='Aviso si el corredor permanece detenido más de estos minutos (RF-05)',
+    )
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['corredor__alias', 'nombre']
+        verbose_name = 'contacto de confianza'
+        verbose_name_plural = 'contactos de confianza'
+
+    def __str__(self):
+        return f'{self.nombre} (de {self.corredor})'
+
+
+class Club(models.Model):
+    """Club de running que publica rutas sugeridas (RF-07)."""
+
+    nombre = models.CharField(max_length=80, unique=True)
+    ciudad = models.CharField(max_length=60, default='Loja')
+    descripcion = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['nombre']
+        verbose_name = 'club'
+        verbose_name_plural = 'clubes'
+
+    def __str__(self):
+        return self.nombre
+
+
 class Zona(models.Model):
     """Sector de Loja donde hay rutas (Jipiro, La Tebaida...)."""
 
@@ -73,6 +111,10 @@ class Ruta(models.Model):
         ALTA = 'ALTA', 'Alta'
 
     zona = models.ForeignKey(Zona, on_delete=models.PROTECT, related_name='rutas')
+    club = models.ForeignKey(
+        Club, on_delete=models.SET_NULL, null=True, blank=True, related_name='rutas',
+        help_text='Club que sugiere la ruta (RF-07)',
+    )
     nombre = models.CharField(max_length=120)
     km = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(Decimal('0.1'))])
     desnivel = models.PositiveIntegerField(default=0, help_text='Metros de desnivel')
@@ -113,6 +155,27 @@ class Evaluacion(models.Model):
 
     def __str__(self):
         return f'{self.ruta} · {self.indice}/100'
+
+
+class Calificacion(models.Model):
+    """Calificación de 1 a 5 que un corredor da a una ruta (RF-08)."""
+
+    corredor = models.ForeignKey(Corredor, on_delete=models.CASCADE, related_name='calificaciones')
+    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE, related_name='calificaciones')
+    puntaje = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comentario = models.CharField(max_length=200, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha', '-id']
+        verbose_name = 'calificación'
+        verbose_name_plural = 'calificaciones'
+        constraints = [
+            models.UniqueConstraint(fields=['corredor', 'ruta'], name='una_calificacion_por_corredor_y_ruta')
+        ]
+
+    def __str__(self):
+        return f'{self.ruta} · {self.puntaje}/5'
 
 
 class Incidente(models.Model):

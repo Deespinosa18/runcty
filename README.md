@@ -18,15 +18,20 @@ Aplicación del reto construida con la arquitectura del curso (guías 03 y 04, a
 | Ruta | `/api/rutas/` | `paginas/rutas/` |
 | Evaluación | `/api/evaluaciones/` | `paginas/evaluaciones/` |
 | Incidente | `/api/incidentes/` | `paginas/incidentes/` |
+| Contacto de confianza | `/api/contactos/` | `paginas/contactos/` |
+| Club | `/api/clubes/` | `paginas/clubes/` |
+| Calificación | `/api/calificaciones/` | `paginas/calificaciones/` |
 
-Regla de negocio: `POST /api/rutas/recomendar/` (página **Recomendar rutas**) devuelve las 3 rutas
-de la zona a ±0,5 km con mayor **índice de seguridad** (0-100) y guarda cada cálculo como Evaluación.
+Regla de negocio: `POST /api/rutas/recomendar/` (página **Recomendar rutas**) devuelve hasta 3 rutas
+de la zona con distancia dentro de ±10 % (RF-01) con mayor **índice de seguridad** (0-100) y guarda cada cálculo como Evaluación.
 Ponderación (`backend/runcty/indice.py`): iluminación 30 %, afluencia 20 %, incidentes 25 %
 (últimos 30 días), puntos de apoyo 15 % y hora de salida 10 %.
 
 Validaciones: porcentajes 0-100, km > 0, alias y ruta únicos, un consentimiento por versión,
 el autor de un incidente debe tener consentimiento aceptado, la fecha del incidente no puede ser futura,
-no se puede borrar una zona o un corredor con registros que dependan de él (400).
+no se puede borrar una zona o un corredor con registros que dependan de él (400),
+contacto con teléfono o correo y aviso entre 1 y 60 min (RF-05), calificación 1-5 única por corredor y ruta (RF-08).
+Alerta de zona (RF-09): `GET /api/zonas/{id}/alerta/` → 3 o más incidentes confirmados en 7 días.
 
 ## Ejecutar
 
@@ -34,7 +39,7 @@ no se puede borrar una zona o un corredor con registros que dependan de él (400
 # Backend
 Set-Location backend; .\.venv\Scripts\Activate.ps1
 python manage.py runserver 0.0.0.0:8000      # admin: /admin/  · API: /api/docs/
-python manage.py test runcty                 # 9 pruebas
+python manage.py test runcty                 # 13 pruebas
 
 # Web
 Set-Location frontend; npx.cmd ng serve --port 8100   # http://localhost:8100

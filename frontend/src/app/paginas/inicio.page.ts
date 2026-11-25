@@ -6,8 +6,8 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  checkmarkDoneOutline, mapOutline, peopleOutline, speedometerOutline, trailSignOutline,
-  warningOutline, walkOutline,
+  callOutline, checkmarkDoneOutline, flagOutline, mapOutline, peopleOutline, speedometerOutline,
+  starOutline, trailSignOutline, warningOutline, walkOutline,
 } from 'ionicons/icons';
 
 /** Menú principal de RUNCTY. */
@@ -30,7 +30,7 @@ import {
           <ion-card-subtitle>Indica zona, distancia y hora</ion-card-subtitle>
           <ion-card-title><ion-icon name="walk-outline"></ion-icon> Recomendar rutas seguras</ion-card-title>
         </ion-card-header>
-        <ion-card-content>Las 3 rutas con mejor índice de seguridad (0-100).</ion-card-content>
+        <ion-card-content>Hasta 3 rutas (±10 % de la distancia) con su índice de seguridad orientativo (0-100).</ion-card-content>
       </ion-card>
 
       <ion-list>
@@ -56,12 +56,15 @@ export class InicioPage {
     { ruta: '/evaluaciones', titulo: 'Evaluaciones', texto: 'Índices calculados', icono: 'speedometer-outline' },
     { ruta: '/corredores', titulo: 'Corredores', texto: 'Usuarios de la app', icono: 'people-outline' },
     { ruta: '/consentimientos', titulo: 'Consentimientos', texto: 'Aceptación antes del primer uso', icono: 'checkmark-done-outline' },
+    { ruta: '/contactos', titulo: 'Contactos de confianza', texto: 'Ubicación compartida y avisos (RF-04, RF-05)', icono: 'call-outline' },
+    { ruta: '/clubes', titulo: 'Clubes', texto: 'Clubes que sugieren rutas (RF-07)', icono: 'flag-outline' },
+    { ruta: '/calificaciones', titulo: 'Calificaciones', texto: 'Puntaje de 1 a 5 por ruta (RF-08)', icono: 'star-outline' },
   ];
 
   constructor() {
     addIcons({
-      checkmarkDoneOutline, mapOutline, peopleOutline, speedometerOutline, trailSignOutline,
-      warningOutline, walkOutline,
+      callOutline, checkmarkDoneOutline, flagOutline, mapOutline, peopleOutline, speedometerOutline,
+      starOutline, trailSignOutline, warningOutline, walkOutline,
     });
   }
 }

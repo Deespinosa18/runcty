@@ -9,7 +9,7 @@ import {
 } from '@ionic/angular';
 
 import { mensajeError } from '../core/crud-api';
-import { Corredor, DIFICULTADES, Recomendacion, Zona } from '../core/modelos';
+import { AlertaZona, Corredor, DIFICULTADES, Recomendacion, Zona } from '../core/modelos';
 import { CorredoresApi, RutasApi, ZonasApi } from '../core/runcty-api.service';
 
 /** Regla principal de RUNCTY: recomienda las 3 rutas más seguras (POST /api/rutas/recomendar/). */
@@ -62,9 +62,19 @@ import { CorredoresApi, RutasApi, ZonasApi } from '../core/runcty-api.service';
         <ion-text color="danger"><p style="white-space: pre-line">{{ error() }}</p></ion-text>
       }
 
+      @if (alerta()?.alerta) {
+        <ion-text color="danger">
+          <p><strong>Alerta de zona:</strong> {{ alerta()!.confirmados }} incidentes confirmados en los últimos
+            {{ alerta()!.dias }} días. Considera otra zona u horario.</p>
+        </ion-text>
+      }
+
       @if (resultados(); as lista) {
+        <ion-text color="medium">
+          <p style="font-size: .85rem">El índice es orientativo: no garantiza seguridad absoluta.</p>
+        </ion-text>
         @if (lista.length === 0) {
-          <p>No hay rutas para esa zona y distancia (± 0,5 km).</p>
+          <p>No hay rutas para esa zona y distancia (± 10 %).</p>
         } @else {
           <h2>Rutas recomendadas</h2>
         }
@@ -72,7 +82,9 @@ import { CorredoresApi, RutasApi, ZonasApi } from '../core/runcty-api.service';
           <ion-card>
             <ion-card-header>
               <ion-card-subtitle>#{{ i + 1 }} · {{ r.ruta.km }} km · {{ r.ruta.desnivel }} m de desnivel
-                · dificultad {{ dificultades[r.ruta.dificultad] }}</ion-card-subtitle>
+                · dificultad {{ dificultades[r.ruta.dificultad] }}
+                @if (r.ruta.club_nombre) { · sugerida por {{ r.ruta.club_nombre }} }
+                @if (r.ruta.calificacion_promedio !== null) { · ★ {{ r.ruta.calificacion_promedio }} }</ion-card-subtitle>
               <ion-card-title>{{ r.ruta.nombre }}</ion-card-title>
             </ion-card-header>
             <ion-card-content>
@@ -94,6 +106,8 @@ import { CorredoresApi, RutasApi, ZonasApi } from '../core/runcty-api.service';
 })
 export class RecomendarPage {
   private readonly rutasApi = inject(RutasApi);
+  private readonly zonasApi = inject(ZonasApi);
+  protected readonly alerta = signal<AlertaZona | null>(null);
 
   protected readonly zonas = signal<Zona[]>([]);
   protected readonly corredores = signal<Corredor[]>([]);
@@ -110,7 +124,7 @@ export class RecomendarPage {
   });
 
   constructor() {
-    inject(ZonasApi).listar().subscribe({
+    this.zonasApi.listar().subscribe({
       next: (l) => this.zonas.set(l),
       error: (e) => this.error.set(mensajeError(e)),
     });
@@ -126,6 +140,8 @@ export class RecomendarPage {
     const { zona, km, hora, corredor } = this.form.getRawValue();
     this.cargando.set(true);
     this.error.set('');
+    // RF-09: consulta si la zona elegida tiene alerta.
+    this.zonasApi.alerta(zona!).subscribe({ next: (a) => this.alerta.set(a), error: () => this.alerta.set(null) });
     this.rutasApi.recomendar({ zona: zona!, km: Number(km), hora, corredor }).subscribe({
       next: (lista) => { this.resultados.set(lista); this.cargando.set(false); },
       error: (e) => { this.error.set(mensajeError(e)); this.cargando.set(false); },

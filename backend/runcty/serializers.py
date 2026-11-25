@@ -5,7 +5,11 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from .indice import calcular_indice
-from .models import Consentimiento, Corredor, Evaluacion, Incidente, Ruta, Zona
+from django.db.models import Avg
+
+from .models import (
+    Calificacion, Club, Consentimiento, ContactoConfianza, Corredor, Evaluacion, Incidente, Ruta, Zona,
+)
 
 
 class CorredorSerializer(serializers.ModelSerializer):
@@ -29,6 +33,29 @@ class ConsentimientoSerializer(serializers.ModelSerializer):
         read_only_fields = ['fecha']
 
 
+class ContactoConfianzaSerializer(serializers.ModelSerializer):
+    corredor_alias = serializers.CharField(source='corredor.alias', read_only=True)
+
+    class Meta:
+        model = ContactoConfianza
+        fields = ['id', 'corredor', 'corredor_alias', 'nombre', 'telefono', 'correo', 'minutos_detencion', 'activo']
+
+    def validate(self, datos):
+        telefono = datos.get('telefono', getattr(self.instance, 'telefono', ''))
+        correo = datos.get('correo', getattr(self.instance, 'correo', ''))
+        if not telefono and not correo:
+            raise serializers.ValidationError('Indica al menos un teléfono o un correo del contacto.')
+        return datos
+
+
+class ClubSerializer(serializers.ModelSerializer):
+    total_rutas = serializers.IntegerField(source='rutas.count', read_only=True)
+
+    class Meta:
+        model = Club
+        fields = ['id', 'nombre', 'ciudad', 'descripcion', 'total_rutas']
+
+
 class ZonaSerializer(serializers.ModelSerializer):
     total_rutas = serializers.IntegerField(source='rutas.count', read_only=True)
 
@@ -39,14 +66,22 @@ class ZonaSerializer(serializers.ModelSerializer):
 
 class RutaSerializer(serializers.ModelSerializer):
     zona_nombre = serializers.CharField(source='zona.nombre', read_only=True)
+    club_nombre = serializers.CharField(source='club.nombre', read_only=True, default=None)
+    calificacion_promedio = serializers.SerializerMethodField()
+    total_calificaciones = serializers.IntegerField(source='calificaciones.count', read_only=True)
     km = serializers.DecimalField(max_digits=5, decimal_places=2, coerce_to_string=False, min_value=Decimal('0.1'))
 
     class Meta:
         model = Ruta
         fields = [
-            'id', 'zona', 'zona_nombre', 'nombre', 'km', 'desnivel', 'superficie', 'dificultad',
-            'iluminacion', 'afluencia', 'apoyo', 'incidentes_base',
+            'id', 'zona', 'zona_nombre', 'club', 'club_nombre', 'nombre', 'km', 'desnivel', 'superficie',
+            'dificultad', 'iluminacion', 'afluencia', 'apoyo', 'incidentes_base',
+            'calificacion_promedio', 'total_calificaciones',
         ]
+
+    def get_calificacion_promedio(self, ruta) -> float | None:
+        promedio = ruta.calificaciones.aggregate(p=Avg('puntaje'))['p']
+        return round(promedio, 1) if promedio is not None else None
 
 
 class EvaluacionSerializer(serializers.ModelSerializer):
@@ -71,6 +106,16 @@ class EvaluacionSerializer(serializers.ModelSerializer):
 
     def update(self, instancia, datos):
         return super().update(instancia, self._con_indice(datos))
+
+
+class CalificacionSerializer(serializers.ModelSerializer):
+    corredor_alias = serializers.CharField(source='corredor.alias', read_only=True)
+    ruta_nombre = serializers.CharField(source='ruta.nombre', read_only=True)
+
+    class Meta:
+        model = Calificacion
+        fields = ['id', 'corredor', 'corredor_alias', 'ruta', 'ruta_nombre', 'puntaje', 'comentario', 'fecha']
+        read_only_fields = ['fecha']
 
 
 class IncidenteSerializer(serializers.ModelSerializer):
@@ -123,3 +168,10 @@ class RecomendacionSerializer(serializers.Serializer):
     indice = serializers.IntegerField()
     aportes = AporteSerializer(many=True)
     evaluacion = serializers.IntegerField()
+
+
+class AlertaZonaSerializer(serializers.Serializer):
+    alerta = serializers.BooleanField()
+    confirmados = serializers.IntegerField()
+    dias = serializers.IntegerField()
+    minimo = serializers.IntegerField()
